@@ -11,6 +11,21 @@ class Cell:
 		self.on_colour =  [1., 1., 1.] #[1.0,0.5,0.6]#
 		self.off_colour = [0., 0., 0.] #[0.65, 1.0, 0.75]   #
 		self.fixed_colour = [0, 0, 1.] #[0,0,0] #
+		self.border_width = 1 # with of rectangle border (probably want either 0 or 1)
+
+		# how quickly the colour for a cell changes from on colour to off colour
+		#   (0.5 means that every fram, the colour moves half-way from current colour to target colour)
+		# for normal GOL colours, set this to 1
+		self.alive_to_dead_change_rate = 0.05
+
+		# how quickly the colour for a cell changes from off colour to on colour
+		# for normal GOL colours, set this to 1
+		self.dead_to_alive_change_rate = 0.8
+		
+
+
+
+
 
 		self.parent = parent
 		self.pos = pos
@@ -29,7 +44,7 @@ class Cell:
 
 		if init:
 			self.getColour()
-			self.rectangle = self.parent.canvas.create_rectangle(0,0,0,0, fill=toHex(self.colour), width=0)
+			self.rectangle = self.parent.canvas.create_rectangle(0,0,0,0, fill=toHex(self.colour), width=self.border_width)
 			self.resize()
 
 			self.parent.canvas.tag_bind(self.rectangle, '<Button-1>', self.click)
@@ -54,22 +69,6 @@ class Cell:
 		pos = self.pos
 		n = self.parent.n
 
-		'''
-		u  = [pos[0], (pos[1] - 1)%n]
-		#self.neighbours.append(self.parent.getCellByPos(u))
-		d  = [pos[0], (pos[1] + 1)%n]
-
-		l = [(pos[0] - 1)%n, pos[1]]
-		r = [(pos[0] + 1)%n, pos[1]]
-
-		ul = [(pos[0] - 1)%n, (pos[1] - 1)%n]
-		ur = [(pos[0] + 1)%n, (pos[1] - 1)%n]
-
-		dl = [(pos[0] - 1)%n, (pos[1] + 1)%n]
-		dr = [(pos[0] + 1)%n, (pos[1] + 1)%n]
-		'''
-
-		
 		nRad = 1
 		for x in range(-nRad, nRad+1):
 			for y in range(-nRad, nRad+1):
@@ -85,10 +84,6 @@ class Cell:
 				dist = (1.*abs(x)**2 + 1.*abs(y)**2)**0.5
 
 				self.neighbourWeights.append(1./(dist*dist))
-
-		#for p in [u, ur, r, dr, d, dl, l, ul]:
-
-		#	self.neighbours.append(self.parent.getCellByPos(p))
 
 		return
 
@@ -143,9 +138,6 @@ class Cell:
 
 		self.value = self.next
 
-		#if abs(self.lastUpdate - self.value) >= 0.075:
-			#print "updating"
-		#	self.lastUpdate = self.value
 		self.draw()
 
 		
@@ -153,7 +145,6 @@ class Cell:
 
 	def getColour(self, frac=None):
 
-		#return toHex([self.value, self.value, self.value])
 		newColour = self.off_colour
 
 		final_frac = frac
@@ -162,10 +153,10 @@ class Cell:
 
 		if not self.fixed:
 			if self.value == 0:
-				frac = 0.05#05
+				frac = self.alive_to_dead_change_rate
 				newColour = self.off_colour
 			else:
-				frac = 0.8
+				frac = self.dead_to_alive_change_rate
 				newColour = self.on_colour
 		else:
 			frac = 1.0
